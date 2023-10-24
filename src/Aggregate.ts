@@ -1,29 +1,32 @@
 import AggregateEvent from "./AggregateEvent";
-
-export type StaticThis<T> = { new(): T };
+import AggregateId from "./AggregateId";
 
 abstract class Aggregate {
-    private aggregateVersion: number = 0;
+    protected aggregateVersion: number = 0;
 
-    private events: Array<AggregateEvent> = [];
+    protected events: Array<AggregateEvent> = [];
 
-    version(): number {
+    public abstract id(): AggregateId;
+
+    public version(): number {
         return this.aggregateVersion;
     }
 
-    raise(event: AggregateEvent): void {
+    public raise(event: AggregateEvent): void {
         this.apply(event);
         this.events.push(event);
     }
 
-    flush(): Array<AggregateEvent> {
+    public flush(): Array<AggregateEvent> {
         const events = this.events;
         this.events = [];
         return events;
     }
 
-    static buildFromEvents<T extends Aggregate>(this: StaticThis<T>, events: Array<AggregateEvent>): T {
-        let aggregate: T = new this();
+    public static buildFromEvents<T extends Aggregate>(events: Array<AggregateEvent>, aggregate: T): T {
+        if (aggregate.events.length > 0) {
+            throw Error('Cannot rebuild aggregate from events if other events have already been applied')
+        }
 
         for (let i = 0; i < events.length; i++) {
             aggregate.apply(events[i]);
@@ -32,7 +35,7 @@ abstract class Aggregate {
         return <T>aggregate;
     }
 
-    private apply(event: AggregateEvent): void {
+    protected apply(event: AggregateEvent): void {
         let eventClassName = Object.getPrototypeOf(event).constructor.name;
 
         let method: string = `apply${eventClassName}`;

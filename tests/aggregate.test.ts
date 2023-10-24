@@ -1,70 +1,67 @@
 import Aggregate from "../src/Aggregate";
 import AggregateEvent from "../src/AggregateEvent";
+import AggregateId from "../src/AggregateId";
+import SampleAggregate from "./Doubles/SampleAggregate";
+import FirstEvent from "./Doubles/FirstEvent";
+import SecondEvent from "./Doubles/SecondEvent";
+import ThirdEvent from "./Doubles/ThirdEvent";
 
 describe("Aggregate", () => {
     test('aggregate version is zero when no events have occurred', () => {
-        const aggregate = new class extends Aggregate {
-        };
+        const aggregate = new SampleAggregate();
 
         expect(aggregate.version()).toBe(0)
     })
 
     test('aggregate version is incremented when new events are raised', () => {
-        const aggregate = new class extends Aggregate {
-            applyEmptyEvent(): void {
+        const aggregate = new SampleAggregate();
 
+        aggregate.raise(new class FirstEvent implements AggregateEvent {
+            aggregateId(): AggregateId {
+                return new class extends AggregateId {
+                    toString(): string {
+                        return "12345";
+                    }
+                }
             }
-        };
-
-        aggregate.raise(new class EmptyEvent implements AggregateEvent {
         });
         expect(aggregate.version()).toBe(1)
 
-        aggregate.raise(new class EmptyEvent implements AggregateEvent {
+        aggregate.raise(new class SecondEvent implements AggregateEvent {
+            aggregateId(): AggregateId {
+                return new class extends AggregateId {
+                    toString(): string {
+                        return "12345";
+                    }
+                }
+            }
         });
         expect(aggregate.version()).toBe(2)
     })
 
     test('raised aggregate event is applied to the aggregate object', () => {
-        const aggregate = new class extends Aggregate {
+        const aggregate = new SampleAggregate();
 
-            private firstEventApplied: boolean = false;
-            private secondEventApplied: boolean = false;
+        aggregate.raise(new FirstEvent());
+        expect(aggregate.wasApplied(new FirstEvent())).toBe(true)
+        expect(aggregate.wasApplied(new SecondEvent())).toBe(false)
 
-            wasFirstEventApplied(): boolean {
-                return this.firstEventApplied;
-            }
-
-            wasSecondEventApplied(): boolean {
-                return this.secondEventApplied;
-            }
-
-            applyFirstEvent(event: AggregateEvent): void {
-                this.firstEventApplied = true;
-            }
-
-            applySecondEvent(event: AggregateEvent): void {
-                this.secondEventApplied = true;
-            }
-        };
-
-        aggregate.raise(new class FirstEvent implements AggregateEvent {
-        });
-        expect(aggregate.wasFirstEventApplied()).toBe(true)
-        expect(aggregate.wasSecondEventApplied()).toBe(false)
-
-        aggregate.raise(new class SecondEvent implements AggregateEvent {
-        });
-        expect(aggregate.wasSecondEventApplied()).toBe(true)
+        aggregate.raise(new SecondEvent());
+        expect(aggregate.wasApplied(new SecondEvent())).toBe(true)
     })
 
     test('exception is thrown when no apply... method exists', () => {
-        const aggregate = new class SampleAggregate extends Aggregate {
-
-        };
+        const aggregate = new SampleAggregate();
 
         const execution = () => {
             aggregate.raise(new class UnhandledEvent implements AggregateEvent {
+                aggregateId(): AggregateId {
+                    return new class extends AggregateId {
+                        toString(): string {
+                            return "12345";
+                        }
+                    }
+                }
             });
         };
 
@@ -74,86 +71,87 @@ describe("Aggregate", () => {
     })
 
     test('aggregate is recreated from existing events', () => {
-        class SampleAggregate extends Aggregate {
-            private firstEventApplied: boolean = false;
-            private secondEventApplied: boolean = false;
 
-            wasFirstEventApplied(): boolean {
-                return this.firstEventApplied;
-            }
+        const firstEvent = new FirstEvent();
+        const secondEvent = new SecondEvent();
 
-            wasSecondEventApplied(): boolean {
-                return this.secondEventApplied;
-            }
+        const aggregate = Aggregate.buildFromEvents([
+            firstEvent,
+            secondEvent
+        ], new SampleAggregate());
 
-            applyFirstEvent(event: AggregateEvent): void {
-                this.firstEventApplied = true;
-            }
-
-            applySecondEvent(event: AggregateEvent): void {
-                this.secondEventApplied = true;
-            }
-        }
-
-        const aggregate = SampleAggregate.buildFromEvents([
-            new class FirstEvent implements AggregateEvent {
-            },
-            new class SecondEvent implements AggregateEvent {
-            },
-        ]);
-
-        expect(aggregate.wasFirstEventApplied()).toBe(true)
-        expect(aggregate.wasSecondEventApplied()).toBe(true)
+        expect(aggregate.wasApplied(firstEvent)).toBe(true)
+        expect(aggregate.wasApplied(secondEvent)).toBe(true)
         expect(aggregate.version()).toBe(2)
     })
 
     test('events are flushed', () => {
-        const aggregate = new class SampleAggregate extends Aggregate {
-            applyFirstEvent(event: AggregateEvent): void {
-            }
+        const aggregate = new SampleAggregate();
 
-            applySecondEvent(event: AggregateEvent): void {
-            }
+        const firstEvent = new FirstEvent();
+        const secondEvent = new SecondEvent();
+        const thirdEvent = new ThirdEvent();
 
-            applyThirdEvent(event: AggregateEvent): void {
-            }
-        }
-
-        aggregate.raise(new class FirstEvent implements AggregateEvent {
-        });
-        aggregate.raise(new class SecondEvent implements AggregateEvent {
-        });
-        aggregate.raise(new class ThirdEvent implements AggregateEvent {
-        });
+        aggregate.raise(firstEvent);
+        aggregate.raise(secondEvent);
+        aggregate.raise(thirdEvent);
 
         expect(aggregate.flush()).toEqual([
-            new class FirstEvent implements AggregateEvent {
-            },
-            new class SecondEvent implements AggregateEvent {
-            },
-            new class ThirdEvent implements AggregateEvent {
-            },
+            firstEvent,
+            secondEvent,
+            thirdEvent
+        ])
+    })
+
+    test('aggregate cannot be built from existing events if other events have already been applied', () => {
+
+        const firstEvent = new FirstEvent();
+        const secondEvent = new SecondEvent();
+
+        let aggregate = new SampleAggregate();
+
+        aggregate.raise(new FirstEvent());
+
+        const execution = () => {
+            Aggregate.buildFromEvents([
+                firstEvent,
+                secondEvent
+            ], aggregate);
+        };
+
+        expect(execution).toThrow(Error)
+        expect(execution)
+            .toThrow('Cannot rebuild aggregate from events if other events have already been applied');
+    })
+
+    test('events are flushed', () => {
+        const aggregate = new SampleAggregate();
+
+        const firstEvent = new FirstEvent();
+        const secondEvent = new SecondEvent();
+        const thirdEvent = new ThirdEvent();
+
+        aggregate.raise(firstEvent);
+        aggregate.raise(secondEvent);
+        aggregate.raise(thirdEvent);
+
+        expect(aggregate.flush()).toEqual([
+            firstEvent,
+            secondEvent,
+            thirdEvent
         ])
     })
 
     test('previously flushed events are not flushed again', () => {
-        const aggregate = new class SampleAggregate extends Aggregate {
-            applyFirstEvent(event: AggregateEvent): void {
-            }
+        const aggregate = new SampleAggregate();
 
-            applySecondEvent(event: AggregateEvent): void {
-            }
+        const firstEvent = new FirstEvent();
+        const secondEvent = new SecondEvent();
+        const thirdEvent = new ThirdEvent();
 
-            applyThirdEvent(event: AggregateEvent): void {
-            }
-        }
-
-        aggregate.raise(new class FirstEvent implements AggregateEvent {
-        });
-        aggregate.raise(new class SecondEvent implements AggregateEvent {
-        });
-        aggregate.raise(new class ThirdEvent implements AggregateEvent {
-        });
+        aggregate.raise(firstEvent);
+        aggregate.raise(secondEvent);
+        aggregate.raise(thirdEvent);
 
         aggregate.flush()
 
@@ -161,29 +159,15 @@ describe("Aggregate", () => {
     })
 
     test('new events are added after aggregate has been rebuilt from previous', () => {
-        class SampleAggregate extends Aggregate {
-            applyFirstEvent(event: AggregateEvent): void {
-            }
 
-            applySecondEvent(event: AggregateEvent): void {
-            }
+        const aggregate = Aggregate.buildFromEvents([
+            new FirstEvent(),
+            new SecondEvent(),
+        ], new SampleAggregate());
 
-            applyThirdEvent(event: AggregateEvent): void {
-            }
-        }
+        aggregate.raise(new ThirdEvent())
 
-        const aggregate = SampleAggregate.buildFromEvents([
-            new class FirstEvent implements AggregateEvent {
-            },
-            new class SecondEvent implements AggregateEvent {
-            },
-        ]);
-
-        aggregate.raise(new class ThirdEvent implements AggregateEvent {
-        })
-
-        expect(aggregate.flush()).toEqual([new class ThirdEvent implements AggregateEvent {
-        }])
+        expect(aggregate.flush()).toEqual([new ThirdEvent()])
         expect(aggregate.version()).toBe(3)
     })
 });
