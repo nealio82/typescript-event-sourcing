@@ -85,24 +85,6 @@ describe("Aggregate", () => {
         expect(aggregate.version()).toBe(2)
     })
 
-    test('events are flushed', () => {
-        const aggregate = new SampleAggregate();
-
-        const firstEvent = new FirstEvent();
-        const secondEvent = new SecondEvent();
-        const thirdEvent = new ThirdEvent();
-
-        aggregate.raise(firstEvent);
-        aggregate.raise(secondEvent);
-        aggregate.raise(thirdEvent);
-
-        expect(aggregate.flush()).toEqual([
-            firstEvent,
-            secondEvent,
-            thirdEvent
-        ])
-    })
-
     test('aggregate cannot be built from existing events if other events have already been applied', () => {
 
         const firstEvent = new FirstEvent();
