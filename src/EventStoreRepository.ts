@@ -16,6 +16,8 @@ class EventStoreRepository {
     public persist(aggregate: Aggregate): void {
         let events: Array<AggregateEvent> = aggregate.flush();
         // @todo: make this safe in case of failure (eg if event store persistence succeeds but event dispatcher fails)
+        // might be better to dispatch the events on the bus only, and then subscribe to the events with the event
+        // store persistence mechanism as an implementation of AggregateEventSubscriber
         this.eventStore.persist(events);
         this.eventDispatcher.dispatch(events);
     }
