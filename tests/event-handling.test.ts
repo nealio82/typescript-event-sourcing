@@ -1,12 +1,11 @@
 import SampleAggregate from "./Doubles/SampleAggregate";
-import EventStore from "../src/EventStore";
-import AggregateEvent from "../src/AggregateEvent";
-import AggregateId from "../src/AggregateId";
-import EventStoreRepository from "../src/EventStoreRepository";
+import EventStore from "../src/EventHandling/EventStore";
+import AggregateEvent from "../src/Aggregate/AggregateEvent";
+import AggregateId from "../src/Aggregate/AggregateId";
+import EventStoreRepository from "../src/EventHandling/EventStoreRepository";
 import FirstEvent from "./Doubles/FirstEvent";
 import SecondEvent from "./Doubles/SecondEvent";
 import ThirdEvent from "./Doubles/ThirdEvent";
-import EventDispatcher from "../src/EventDispatcher";
 import InMemoryEventDispatcher from "./Doubles/InMemoryEventDispatcher";
 import InMemoryEventStore from "./Doubles/InMemoryEventStore";
 

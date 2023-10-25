@@ -1,5 +1,5 @@
-import AggregateEvent from "../../src/AggregateEvent";
-import AggregateId from "../../src/AggregateId";
+import AggregateEvent from "../../src/Aggregate/AggregateEvent";
+import AggregateId from "../../src/Aggregate/AggregateId";
 
 export default class FirstEvent implements AggregateEvent {
     aggregateId(): AggregateId {

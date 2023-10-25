@@ -1,8 +1,8 @@
-import AggregateId from "./AggregateId";
+import AggregateId from "../Aggregate/AggregateId";
 import EventStore from "./EventStore";
-import Aggregate from "./Aggregate";
+import Aggregate from "../Aggregate/Aggregate";
 import EventDispatcher from "./EventDispatcher";
-import AggregateEvent from "./AggregateEvent";
+import AggregateEvent from "../Aggregate/AggregateEvent";
 
 class EventStoreRepository {
     private eventStore: EventStore;

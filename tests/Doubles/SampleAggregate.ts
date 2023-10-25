@@ -1,6 +1,6 @@
-import Aggregate from "../../src/Aggregate";
-import AggregateId from "../../src/AggregateId";
-import AggregateEvent from "../../src/AggregateEvent";
+import Aggregate from "../../src/Aggregate/Aggregate";
+import AggregateId from "../../src/Aggregate/AggregateId";
+import AggregateEvent from "../../src/Aggregate/AggregateEvent";
 
 export default class SampleAggregate extends Aggregate {
 

@@ -1,5 +1,5 @@
-import EventDispatcher from "../../src/EventDispatcher";
-import AggregateEvent from "../../src/AggregateEvent";
+import EventDispatcher from "../../src/EventHandling/EventDispatcher";
+import AggregateEvent from "../../src/Aggregate/AggregateEvent";
 
 export default class InMemoryEventDispatcher implements EventDispatcher {
     private dispatchedEvents: Array<string> = [];

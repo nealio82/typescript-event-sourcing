@@ -2,9 +2,9 @@ import AggregateEvent from "./AggregateEvent";
 import AggregateId from "./AggregateId";
 
 abstract class Aggregate {
-    protected aggregateVersion: number = 0;
+    private aggregateVersion: number = 0;
 
-    protected events: Array<AggregateEvent> = [];
+    private events: Array<AggregateEvent> = [];
 
     public abstract id(): AggregateId;
 
@@ -35,7 +35,7 @@ abstract class Aggregate {
         return <T>aggregate;
     }
 
-    protected apply(event: AggregateEvent): void {
+    private apply(event: AggregateEvent): void {
         let eventClassName = Object.getPrototypeOf(event).constructor.name;
 
         let method: string = `apply${eventClassName}`;

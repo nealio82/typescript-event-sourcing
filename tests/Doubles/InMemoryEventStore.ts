@@ -1,6 +1,6 @@
-import EventStore from "../../src/EventStore";
-import AggregateEvent from "../../src/AggregateEvent";
-import AggregateId from "../../src/AggregateId";
+import EventStore from "../../src/EventHandling/EventStore";
+import AggregateEvent from "../../src/Aggregate/AggregateEvent";
+import AggregateId from "../../src/Aggregate/AggregateId";
 
 export default class InMemoryEventStore implements EventStore {
     private storedEvents: Array<AggregateEvent> = [];
