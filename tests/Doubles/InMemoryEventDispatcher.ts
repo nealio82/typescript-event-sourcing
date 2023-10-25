@@ -1,18 +1,20 @@
-import EventDispatcher from "../../src/EventHandling/EventDispatcher";
-import AggregateEvent from "../../src/Aggregate/AggregateEvent";
+import EventDispatcher from '../../src/EventHandling/EventDispatcher'
+import AggregateEvent from '../../src/Aggregate/AggregateEvent'
 
 export default class InMemoryEventDispatcher implements EventDispatcher {
-    private dispatchedEvents: Array<string> = [];
+    private dispatchedEvents: Array<string> = []
 
     dispatch(events: Array<AggregateEvent>) {
         for (let i = 0; i < events.length; i++) {
-            this.dispatchedEvents.push(Object.getPrototypeOf(events[i]).constructor.name);
+            this.dispatchedEvents.push(
+                Object.getPrototypeOf(events[i]).constructor.name
+            )
         }
     }
 
     wasDispatched(event: AggregateEvent): boolean {
-        let eventClassName = Object.getPrototypeOf(event).constructor.name;
+        let eventClassName = Object.getPrototypeOf(event).constructor.name
 
-        return this.dispatchedEvents.includes(eventClassName);
+        return this.dispatchedEvents.includes(eventClassName)
     }
 }

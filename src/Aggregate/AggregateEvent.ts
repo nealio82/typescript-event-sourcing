@@ -1,7 +1,7 @@
-import AggregateId from "./AggregateId";
+import AggregateId from './AggregateId'
 
 interface AggregateEvent {
-    aggregateId(): AggregateId;
+    aggregateId(): AggregateId
 }
 
-export default AggregateEvent;
+export default AggregateEvent
